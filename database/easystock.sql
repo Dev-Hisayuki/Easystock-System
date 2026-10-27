@@ -14,7 +14,7 @@ CREATE TABLE suppliers (
     supplier_id INT AUTO_INCREMENT PRIMARY KEY,
     supplier_name VARCHAR(120) NOT NULL,
     contact_person VARCHAR(100),
-    phone VARCHAR(30),
+    phone VARCHAR(20),
     email VARCHAR(120) UNIQUE,
     address VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
