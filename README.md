@@ -16,34 +16,34 @@ EasyStock is a user-friendly platform designed to manage products and inventory 
 
 Below is the complete file and directory layout for the **EasyStock** inventory management system built with Node.js, Express, and MySQL:
 
-```text
+```
 easystock/
-├── .env                      # Database configuration & environment variables
-├── .gitignore                # Excludes node_modules & secret env files from Git
-├── README.md                 # Project documentation & execution guide
-├── index.js                  # Express server entry point & static file server
-├── package-lock.json         # Locked dependency version tree
-├── package.json              # Project metadata, scripts, and dependencies
+├── .env                      # [M1: Abellon - @abelloncjnickole-collab] Database configuration & credentials
+├── .gitignore                # [Team / Lead] Excludes node_modules & secret env files from Git
+├── README.md                 # [Team Lead] Setup & running instructions
+├── index.js                  # [M1: Abellon - @abelloncjnickole-collab] Entry point (Express server & static file host)
+├── package-lock.json         # [Team / Lead] Locked dependency version tree
+├── package.json              # [Team / Lead] Project dependencies & npm scripts
 ├── config/
-│   └── db.js                 # MySQL database connection pool setup
+│   └── db.js                 # [M1: Abellon - @abelloncjnickole-collab] MySQL database connection pool configuration
 ├── controllers/
-│   ├── authController.js     # Admin authentication logic
-│   ├── productController.js  # Product & catalog CRUD handlers
-│   └── stockController.js    # Stock In/Out movements & log actions
+│   ├── authController.js     # [M1: Abellon - @abelloncjnickole-collab] User authentication controller
+│   ├── productController.js  # [M2: Palmis - @mingoymarkjohnpaul-del] Product CRUD controller
+│   └── stockController.js    # [M3 & M4: Bulata & Alvarado - @Robren2005 / @kurtalvarado05-coder] Stock In/Out controller
 ├── models/
-│   ├── Product.js            # SQL queries for products table
-│   ├── StockLog.js           # SQL queries for stock audit trail
-│   └── User.js               # SQL queries for users & admin accounts
+│   ├── Product.js            # [M2: Palmis - @mingoymarkjohnpaul-del] SQL queries for products table
+│   ├── StockLog.js           # [M5: Gemina - @R0nielGemina] SQL queries for stock_logs audit table
+│   └── User.js               # [M1: Abellon - @abelloncjnickole-collab] SQL queries for users table
 ├── public/
-│   ├── index.html            # Primary single-page application dashboard UI
+│   ├── index.html            # [M6: Alcorcon - @Dev-Hisayuki] Complete EasyStock dashboard UI
 │   ├── css/
-│   │   └── style.css         # Custom stylesheet overrides
+│   │   └── style.css         # [M6: Alcorcon - @Dev-Hisayuki] Custom CSS overrides
 │   └── js/
-│       └── main.js           # Client-side JS API fetch logic & state management
+│       └── main.js           # [M6: Alcorcon - @Dev-Hisayuki] Client-side API fetch logic
 └── routes/
-    ├── authRoutes.js         # Authentication REST endpoints (/api/auth)
-    ├── productRoutes.js      # Product catalog REST endpoints (/api/products)
-    └── stockRoutes.js        # Stock transaction REST endpoints (/api/stock)
+    ├── authRoutes.js         # [M1: Abellon - @abelloncjnickole-collab] Authentication API routes (/api/auth)
+    ├── productRoutes.js      # [M2: Palmis - @mingoymarkjohnpaul-del] Product API routes (/api/products)
+    └── stockRoutes.js        # [M3 & M4: Bulata & Alvarado] Stock adjustment API routes (/api/stock)
 ```
 
 ---
