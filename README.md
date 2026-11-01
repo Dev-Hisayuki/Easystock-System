@@ -1,6 +1,6 @@
 ﻿# EasyStock 
 
-EasyStock is a simple and easy-to-use system for tracking products, goods, and supplies. It helps you keep track of what you have in stock, what is running low, and all the items coming in and out of your storage.
+EasyStock is a user-friendly platform designed to manage products and inventory effortlessly. It lets you monitor your current stock levels, spot items that are running low, and keep track of everything entering or leaving your storage.
 
 # Main features:
 
