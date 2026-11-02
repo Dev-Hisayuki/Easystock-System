@@ -1,18 +1,18 @@
 const db = require('../config/db');
 
 exports.getAllStockLogs = async (req, res) => {
-    try {
-        const [rows] = await db.execute(`
-            SELECT sl.*, i.item_name, u.username as performed_by_user 
-            FROM stock_logs sl
-            JOIN items i ON sl.item_id = i.item_id
-            LEFT JOIN users u ON sl.performed_by = u.id
-            ORDER BY sl.created_at DESC
-        `);
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+try {
+    const [rows] = await db.execute(`
+    SELECT sl.*, i.item_name, u.username as performed_by_user
+    FROM stock_logs sl
+    JOIN items i ON sl.item_id = i.item_id
+    LEFT JOIN users u ON sl.performed_by = u.user_id
+    ORDER BY sl.created_at DESC
+    `);
+    res.json(rows);
+} catch (err) {
+    res.status(500).json({ error: err.message });
+}
 };
 
 exports.createStockLog = async (req, res) => {
