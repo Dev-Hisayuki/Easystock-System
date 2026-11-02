@@ -297,18 +297,25 @@ async function handleProductSubmit(e) {
     const url = id ? `http://localhost:5000/api/products/${id}` : 'http://localhost:5000/api/products';
     const method = id ? 'PUT' : 'POST';
 
-    const res = await fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ item_name, category, quantity, unit_price })
-    });
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item_name, category, quantity, unit_price })
+        });
 
-    if (res.ok) {
-        showToast(id ? 'Product updated successfully' : 'Product added successfully', 'success');
-        closeProductModal();
-        fetchAllData();
-    } else {
-        showToast('Error saving product', 'error');
+        if (res.ok) {
+            showToast(id ? 'Product updated successfully' : 'Product added successfully', 'success');
+            closeProductModal();
+            fetchAllData();
+        } else {
+            const errData = await res.json().catch(() => ({}));
+            console.error('Server error response:', errData);
+            showToast(errData.error || errData.message || 'Error saving product', 'error');
+        }
+    } catch (err) {
+        console.error('Network/Client error:', err);
+        showToast('Network connection failed', 'error');
     }
 }
 
@@ -363,26 +370,40 @@ async function handleStockAdjustment(e) {
 }
 
 async function quickTableAdjust(item_id, action_type, quantity_changed) {
-    const item = inventory.find(i => i.item_id === item_id);
-    if (!item) return;
+  const item = inventory.find(i => i.item_id === item_id);
+  if (!item) return;
 
-    if (action_type === 'OUT' && item.quantity < quantity_changed) {
-        showToast('Insufficient stock quantity', 'error');
-        return;
-    }
+  if (action_type === 'OUT' && item.quantity < quantity_changed) {
+    showToast('Insufficient stock quantity', 'error');
+    return;
+  }
 
+  try {
     const res = await fetch('http://localhost:5000/api/stock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ item_id, action_type, quantity_changed, remarks: `Quick Table ${action_type}`, performed_by: 1 })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        item_id: Number(item_id), 
+        action_type: action_type, 
+        quantity_changed: Number(quantity_changed), 
+        remarks: `Quick Table ${action_type}`, 
+        performed_by: null // Set to null if user foreign key constraint fails
+      })
     });
 
+    const data = await res.json();
+
     if (res.ok) {
-        showToast(`Stock updated successfully`, 'info');
-        fetchAllData();
+      showToast('Stock updated successfully', 'success');
+      fetchAllData();
     } else {
-        showToast('Quick adjustment failed', 'error');
+      console.error('Server error:', data.error);
+      showToast(data.error || 'Quick adjustment failed', 'error');
     }
+  } catch (err) {
+    console.error('Connection error:', err);
+    showToast('Could not connect to server', 'error');
+  }
 }
 
 function clearAuditLogs() {
@@ -423,6 +444,11 @@ function exportToCSV() {
     document.body.removeChild(link);
 
     showToast('Exported inventory to CSV successfully', 'success');
+}
+
+function handleLogout() {
+    localStorage.removeItem('authToken');
+    window.location.href = 'index.html';
 }
 
 function showToast(message, type = 'info') {
