@@ -1,36 +1,26 @@
-const API_BASE = '/api';
-
 let inventory = [];
 let logs = [];
+let pollingInterval = null;
 
 window.onload = function() {
-    fetchInventory();
-    fetchLogs();
+    fetchAllData();
+    pollingInterval = setInterval(fetchAllData, 3000);
 };
 
-async function fetchInventory() {
+async function fetchAllData() {
     try {
-        const res = await fetch(`${API_BASE}/products`);
-        const json = await res.json();
-        if (json.success) {
-            inventory = json.data;
+        const [prodRes, stockRes] = await Promise.all([
+            fetch('http://localhost:5000/api/products'),
+            fetch('http://localhost:5000/api/stock')
+        ]);
+        
+        if (prodRes.ok && stockRes.ok) {
+            inventory = await prodRes.json();
+            logs = await stockRes.json();
             renderAll();
         }
     } catch (err) {
-        showToast('Failed to fetch inventory from server', 'error');
-    }
-}
-
-async function fetchLogs() {
-    try {
-        const res = await fetch(`${API_BASE}/stock/logs`);
-        const json = await res.json();
-        if (json.success) {
-            logs = json.data;
-            renderAll();
-        }
-    } catch (err) {
-        showToast('Failed to fetch transaction logs', 'error');
+        console.error('Real-time sync connection error:', err);
     }
 }
 
@@ -79,12 +69,12 @@ function getStatusInfo(stock) {
 
 function renderDashboardStats() {
     const totalProducts = inventory.length;
-    const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-    const lowStockCount = inventory.filter(item => item.quantity > 0 && item.quantity < 10).length;
-    const outOfStockCount = inventory.filter(item => item.quantity === 0).length;
+    const totalValue = inventory.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unit_price)), 0);
+    const lowStockCount = inventory.filter(item => Number(item.quantity) > 0 && Number(item.quantity) < 10).length;
+    const outOfStockCount = inventory.filter(item => Number(item.quantity) === 0).length;
 
     document.getElementById('stat-total-products').textContent = totalProducts;
-    document.getElementById('stat-total-value').textContent = '$' + totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('stat-total-value').textContent = '₱' + totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     document.getElementById('stat-low-stock').textContent = lowStockCount;
     document.getElementById('stat-out-stock').textContent = outOfStockCount;
 
@@ -92,7 +82,7 @@ function renderDashboardStats() {
     if (lowStockCount > 0 || outOfStockCount > 0) {
         banner.classList.remove('hidden');
         document.getElementById('low-stock-banner-text').textContent = 
-            `Attention: ${lowStockCount} item(s) are low on stock, and ${outOfStockCount} item(s) are out of stock.`;
+            `Attention: ${lowStockCount} item(s) are low on stock, and ${outOfStockCount} item(s) are currently completely out of stock.`;
     } else {
         banner.classList.add('hidden');
     }
@@ -100,15 +90,15 @@ function renderDashboardStats() {
 
 function renderTopValueItems() {
     const tbody = document.getElementById('top-value-table');
-    const sorted = [...inventory].sort((a, b) => (b.quantity * b.price) - (a.quantity * a.price)).slice(0, 4);
+    const sorted = [...inventory].sort((a, b) => (b.quantity * b.unit_price) - (a.quantity * a.unit_price)).slice(0, 4);
 
     tbody.innerHTML = sorted.map(item => `
         <tr class="hover:bg-slate-50 transition">
-            <td class="py-2.5 font-medium text-slate-800">${item.name} <span class="text-[10px] text-slate-400 font-normal">(${item.sku})</span></td>
+            <td class="py-2.5 font-medium text-slate-800">${item.item_name} <span class="text-[10px] text-slate-400 font-normal">(ID: ${item.item_id})</span></td>
             <td class="py-2.5"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px]">${item.category}</span></td>
             <td class="py-2.5 text-right font-semibold">${item.quantity}</td>
-            <td class="py-2.5 text-right">$${parseFloat(item.price).toFixed(2)}</td>
-            <td class="py-2.5 text-right font-bold text-slate-900">$${(item.quantity * item.price).toFixed(2)}</td>
+            <td class="py-2.5 text-right">₱${Number(item.unit_price).toFixed(2)}</td>
+            <td class="py-2.5 text-right font-bold text-slate-900">₱${(item.quantity * item.unit_price).toFixed(2)}</td>
         </tr>
     `).join('');
 }
@@ -123,21 +113,21 @@ function renderRecentLogs() {
     }
 
     container.innerHTML = recent.map(log => {
-        const isPositive = log.type === 'IN';
+        const isPositive = log.action_type === 'IN';
         return `
             <div class="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition">
                 <div class="w-7 h-7 rounded-full ${isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'} flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
                     <i class="fa-solid ${isPositive ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-xs font-semibold text-slate-800 truncate">${log.product_name || 'Product'}</p>
-                    <p class="text-[11px] text-slate-500">${log.notes || (isPositive ? 'Stock Added' : 'Stock Removed')}</p>
+                    <p class="text-xs font-semibold text-slate-800 truncate">${log.item_name || 'Product #' + log.item_id}</p>
+                    <p class="text-[11px] text-slate-500">${log.remarks || log.action_type}</p>
                 </div>
                 <div class="text-right flex-shrink-0">
                     <span class="text-xs font-bold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}">
                         ${isPositive ? '+' : '-'}${log.quantity_changed}
                     </span>
-                    <p class="text-[10px] text-slate-400">${new Date(log.created_at).toLocaleTimeString()}</p>
+                    <p class="text-[10px] text-slate-400">${new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                 </div>
             </div>
         `;
@@ -153,7 +143,7 @@ function renderInventoryTable() {
     const statusVal = document.getElementById('status-filter').value;
 
     const filtered = inventory.filter(item => {
-        const matchesSearch = item.name.toLowerCase().includes(searchVal) || item.sku.toLowerCase().includes(searchVal);
+        const matchesSearch = item.item_name.toLowerCase().includes(searchVal) || String(item.item_id).includes(searchVal);
         const matchesCategory = categoryVal === 'ALL' || item.category === categoryVal;
         
         let matchesStatus = true;
@@ -174,20 +164,20 @@ function renderInventoryTable() {
 
     tbody.innerHTML = filtered.map(item => {
         const status = getStatusInfo(item.quantity);
-        const totalVal = (item.quantity * item.price).toFixed(2);
+        const totalVal = (item.quantity * item.unit_price).toFixed(2);
 
         return `
             <tr class="hover:bg-slate-50/80 transition">
-                <td class="py-3 px-4 font-mono text-xs font-semibold text-slate-600">${item.sku}</td>
-                <td class="py-3 px-4 font-semibold text-slate-800">${item.name}</td>
+                <td class="py-3 px-4 font-mono text-xs font-semibold text-slate-600">ID-${item.item_id}</td>
+                <td class="py-3 px-4 font-semibold text-slate-800">${item.item_name}</td>
                 <td class="py-3 px-4">
                     <span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs font-medium border border-slate-200">${item.category}</span>
                 </td>
                 <td class="py-3 px-4 text-center">
                     <span class="font-bold text-sm ${item.quantity === 0 ? 'text-rose-600' : (item.quantity < 10 ? 'text-amber-600' : 'text-slate-800')}">${item.quantity}</span>
                 </td>
-                <td class="py-3 px-4 text-right font-medium">$${parseFloat(item.price).toFixed(2)}</td>
-                <td class="py-3 px-4 text-right font-bold text-slate-900">$${totalVal}</td>
+                <td class="py-3 px-4 text-right font-medium">₱${Number(item.unit_price).toFixed(2)}</td>
+                <td class="py-3 px-4 text-right font-bold text-slate-900">₱${totalVal}</td>
                 <td class="py-3 px-4 text-center">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${status.class}">
                         ${status.label}
@@ -195,16 +185,16 @@ function renderInventoryTable() {
                 </td>
                 <td class="py-3 px-4 text-center">
                     <div class="flex items-center justify-center gap-1.5">
-                        <button onclick="quickAdjustStock(${item.id}, 'IN', 1)" title="Quick +1 Stock In" class="w-7 h-7 bg-slate-100 hover:bg-emerald-100 hover:text-emerald-700 rounded-md text-slate-600 flex items-center justify-center transition">
+                        <button onclick="quickTableAdjust(${item.item_id}, 'IN', 1)" title="Quick +1 Stock In" class="w-7 h-7 bg-slate-100 hover:bg-emerald-100 hover:text-emerald-700 rounded-md text-slate-600 flex items-center justify-center transition">
                             <i class="fa-solid fa-plus text-xs"></i>
                         </button>
-                        <button onclick="quickAdjustStock(${item.id}, 'OUT', 1)" title="Quick -1 Stock Out" class="w-7 h-7 bg-slate-100 hover:bg-rose-100 hover:text-rose-700 rounded-md text-slate-600 flex items-center justify-center transition">
+                        <button onclick="quickTableAdjust(${item.item_id}, 'OUT', 1)" title="Quick -1 Stock Out" class="w-7 h-7 bg-slate-100 hover:bg-rose-100 hover:text-rose-700 rounded-md text-slate-600 flex items-center justify-center transition">
                             <i class="fa-solid fa-minus text-xs"></i>
                         </button>
-                        <button onclick="openProductModal(${item.id})" title="Edit Item" class="w-7 h-7 bg-slate-100 hover:bg-blue-100 hover:text-blue-700 rounded-md text-slate-600 flex items-center justify-center transition">
+                        <button onclick="openProductModal(${item.item_id})" title="Edit Item" class="w-7 h-7 bg-slate-100 hover:bg-blue-100 hover:text-blue-700 rounded-md text-slate-600 flex items-center justify-center transition">
                             <i class="fa-solid fa-pen text-xs"></i>
                         </button>
-                        <button onclick="deleteProduct(${item.id})" title="Delete Item" class="w-7 h-7 bg-slate-100 hover:bg-rose-100 hover:text-rose-700 rounded-md text-slate-600 flex items-center justify-center transition">
+                        <button onclick="deleteProduct(${item.item_id})" title="Delete Item" class="w-7 h-7 bg-slate-100 hover:bg-rose-100 hover:text-rose-700 rounded-md text-slate-600 flex items-center justify-center transition">
                             <i class="fa-solid fa-trash text-xs"></i>
                         </button>
                     </div>
@@ -214,15 +204,11 @@ function renderInventoryTable() {
     }).join('');
 }
 
-function filterInventory() {
-    renderInventoryTable();
-}
-
+function filterInventory() { renderInventoryTable(); }
 function filterByStatus(status) {
     document.getElementById('status-filter').value = status;
     renderInventoryTable();
 }
-
 function resetFilters() {
     document.getElementById('inventory-search').value = '';
     document.getElementById('category-filter').value = 'ALL';
@@ -243,22 +229,22 @@ function renderTransactionTable() {
     emptyState.classList.add('hidden');
 
     tbody.innerHTML = logs.map(log => {
-        const isPositive = log.type === 'IN';
+        const isPositive = log.action_type === 'IN';
         return `
             <tr class="hover:bg-slate-50 transition">
                 <td class="py-3 px-4 text-xs text-slate-500 font-mono">${new Date(log.created_at).toLocaleString()}</td>
                 <td class="py-3 px-4">
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${isPositive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
                         <i class="fa-solid ${isPositive ? 'fa-arrow-down' : 'fa-arrow-up'} text-[10px]"></i>
-                        ${isPositive ? 'STOCK IN' : 'STOCK OUT'}
+                        ${log.action_type}
                     </span>
                 </td>
-                <td class="py-3 px-4 font-semibold text-slate-800">${log.product_name} (${log.sku})</td>
+                <td class="py-3 px-4 font-semibold text-slate-800">${log.item_name || 'Product ID #' + log.item_id}</td>
                 <td class="py-3 px-4 text-center font-bold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}">
                     ${isPositive ? '+' : '-'}${log.quantity_changed}
                 </td>
-                <td class="py-3 px-4 text-center font-semibold text-slate-700">${log.final_stock}</td>
-                <td class="py-3 px-4 text-xs text-slate-600">${log.notes || '-'}</td>
+                <td class="py-3 px-4 text-center font-semibold text-slate-700">-</td>
+                <td class="py-3 px-4 text-xs text-slate-600">${log.remarks || '-'} (By User ID: ${log.performed_by || 'System'})</td>
             </tr>
         `;
     }).join('');
@@ -277,19 +263,19 @@ function openProductModal(id = null) {
     document.getElementById('edit-id').value = '';
 
     if (id) {
-        const item = inventory.find(i => i.id === id);
+        const item = inventory.find(i => i.item_id === id);
         if (item) {
             title.textContent = 'Edit Product Details';
-            document.getElementById('edit-id').value = item.id;
-            document.getElementById('form-name').value = item.name;
-            document.getElementById('form-sku').value = item.sku;
+            document.getElementById('edit-id').value = item.item_id;
+            document.getElementById('form-name').value = item.item_name;
+            document.getElementById('form-sku').value = 'ID-' + item.item_id;
             document.getElementById('form-category').value = item.category;
             document.getElementById('form-stock').value = item.quantity;
-            document.getElementById('form-price').value = item.price;
+            document.getElementById('form-price').value = item.unit_price;
         }
     } else {
         title.textContent = 'Add New Product';
-        document.getElementById('form-sku').value = 'SKU-' + Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('form-sku').value = 'AUTO-GENERATE';
     }
 
     modal.classList.remove('hidden');
@@ -303,49 +289,36 @@ async function handleProductSubmit(e) {
     e.preventDefault();
 
     const id = document.getElementById('edit-id').value;
-    const data = {
-        name: document.getElementById('form-name').value.trim(),
-        sku: document.getElementById('form-sku').value.trim(),
-        category: document.getElementById('form-category').value,
-        quantity: parseInt(document.getElementById('form-stock').value),
-        price: parseFloat(document.getElementById('form-price').value)
-    };
+    const item_name = document.getElementById('form-name').value.trim();
+    const category = document.getElementById('form-category').value;
+    const quantity = parseInt(document.getElementById('form-stock').value);
+    const unit_price = parseFloat(document.getElementById('form-price').value);
 
+    const url = id ? `http://localhost:5000/api/products/${id}` : 'http://localhost:5000/api/products';
     const method = id ? 'PUT' : 'POST';
-    const url = id ? `${API_BASE}/products/${id}` : `${API_BASE}/products`;
 
-    try {
-        const res = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        const json = await res.json();
+    const res = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item_name, category, quantity, unit_price })
+    });
 
-        if (json.success) {
-            showToast(id ? 'Product updated successfully' : 'Product added to inventory', 'success');
-            closeProductModal();
-            fetchInventory();
-            fetchLogs();
-        } else {
-            showToast(json.error || 'Operation failed', 'error');
-        }
-    } catch (err) {
-        showToast('Server communication error', 'error');
+    if (res.ok) {
+        showToast(id ? 'Product updated successfully' : 'Product added successfully', 'success');
+        closeProductModal();
+        fetchAllData();
+    } else {
+        showToast('Error saving product', 'error');
     }
 }
 
 async function deleteProduct(id) {
     if (confirm('Are you sure you want to delete this product?')) {
-        try {
-            const res = await fetch(`${API_BASE}/products/${id}`, { method: 'DELETE' });
-            const json = await res.json();
-            if (json.success) {
-                showToast('Product deleted from inventory', 'info');
-                fetchInventory();
-                fetchLogs();
-            }
-        } catch (err) {
+        const res = await fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            showToast('Product deleted from system', 'info');
+            fetchAllData();
+        } else {
             showToast('Failed to delete product', 'error');
         }
     }
@@ -358,7 +331,7 @@ function openStockAdjustmentModal() {
         return;
     }
 
-    select.innerHTML = inventory.map(i => `<option value="${i.id}">${i.name} (Current Stock: ${i.quantity})</option>`).join('');
+    select.innerHTML = inventory.map(i => `<option value="${i.item_id}">${i.item_name} (Current Stock: ${i.quantity})</option>`).join('');
     document.getElementById('stock-modal').classList.remove('hidden');
 }
 
@@ -368,62 +341,55 @@ function closeStockModal() {
 
 async function handleStockAdjustment(e) {
     e.preventDefault();
-    const productId = document.getElementById('stock-item-select').value;
-    const type = document.getElementById('stock-action').value;
-    const quantity = parseInt(document.getElementById('stock-qty').value);
-    const notes = document.getElementById('stock-note').value.trim();
+    const item_id = document.getElementById('stock-item-select').value;
+    const action_type = document.getElementById('stock-action').value;
+    const quantity_changed = parseInt(document.getElementById('stock-qty').value);
+    const remarks = document.getElementById('stock-note').value.trim() || 'Manual Quick Adjustment';
 
-    try {
-        const res = await fetch(`${API_BASE}/stock/adjust`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId, type, quantity, notes })
-        });
-        const json = await res.json();
+    const res = await fetch('http://localhost:5000/api/stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item_id, action_type, quantity_changed, remarks, performed_by: 1 })
+    });
 
-        if (json.success) {
-            showToast('Stock adjusted successfully', 'success');
-            closeStockModal();
-            fetchInventory();
-            fetchLogs();
-        } else {
-            showToast(json.error || 'Stock adjustment failed', 'error');
-        }
-    } catch (err) {
-        showToast('Server error while adjusting stock', 'error');
+    if (res.ok) {
+        showToast('Stock adjusted successfully', 'success');
+        closeStockModal();
+        fetchAllData();
+    } else {
+        const errData = await res.json();
+        showToast(errData.error || 'Stock adjustment failed', 'error');
     }
 }
 
-async function quickAdjustStock(productId, type, quantity) {
-    try {
-        const res = await fetch(`${API_BASE}/stock/adjust`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId, type, quantity, notes: `Quick ${type} adjustment` })
-        });
-        const json = await res.json();
-        if (json.success) {
-            showToast(`Quick stock update completed`, 'info');
-            fetchInventory();
-            fetchLogs();
-        }
-    } catch (err) {
-        showToast('Failed to perform quick adjustment', 'error');
+async function quickTableAdjust(item_id, action_type, quantity_changed) {
+    const item = inventory.find(i => i.item_id === item_id);
+    if (!item) return;
+
+    if (action_type === 'OUT' && item.quantity < quantity_changed) {
+        showToast('Insufficient stock quantity', 'error');
+        return;
+    }
+
+    const res = await fetch('http://localhost:5000/api/stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item_id, action_type, quantity_changed, remarks: `Quick Table ${action_type}`, performed_by: 1 })
+    });
+
+    if (res.ok) {
+        showToast(`Stock updated successfully`, 'info');
+        fetchAllData();
+    } else {
+        showToast('Quick adjustment failed', 'error');
     }
 }
 
-async function clearAuditLogs() {
-    if (confirm('Clear all audit logs from the database?')) {
-        try {
-            const res = await fetch(`${API_BASE}/stock/logs`, { method: 'DELETE' });
-            const json = await res.json();
-            if (json.success) {
-                showToast('Audit trail cleared', 'info');
-                fetchLogs();
-            }
-        } catch (err) {
-            showToast('Failed to clear logs', 'error');
-        }
+function clearAuditLogs() {
+    if (confirm('Clear local log view?')) {
+        logs = [];
+        renderTransactionTable();
+        showToast('Logs view cleared', 'info');
     }
 }
 
@@ -434,16 +400,16 @@ function exportToCSV() {
     }
 
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "SKU,Product Name,Category,Stock Level,Unit Price,Total Value\n";
+    csvContent += "Item ID,Product Name,Category,Stock Level,Unit Price (PHP),Total Value (PHP)\n";
 
     inventory.forEach(item => {
         const row = [
-            `"${item.sku}"`,
-            `"${item.name}"`,
+            `"ID-${item.item_id}"`,
+            `"${item.item_name}"`,
             `"${item.category}"`,
             item.quantity,
-            parseFloat(item.price).toFixed(2),
-            (item.quantity * item.price).toFixed(2)
+            Number(item.unit_price).toFixed(2),
+            (item.quantity * item.unit_price).toFixed(2)
         ];
         csvContent += row.join(",") + "\n";
     });
@@ -456,7 +422,7 @@ function exportToCSV() {
     link.click();
     document.body.removeChild(link);
 
-    showToast('Exported inventory list to CSV', 'success');
+    showToast('Exported inventory to CSV successfully', 'success');
 }
 
 function showToast(message, type = 'info') {
