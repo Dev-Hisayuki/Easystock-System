@@ -165,6 +165,7 @@ function renderInventoryTable() {
     tbody.innerHTML = filtered.map(item => {
         const status = getStatusInfo(item.quantity);
         const totalVal = (item.quantity * item.unit_price).toFixed(2);
+        const formattedDate = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
 
         return `
             <tr class="hover:bg-slate-50/80 transition">
@@ -173,6 +174,7 @@ function renderInventoryTable() {
                 <td class="py-3 px-4">
                     <span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs font-medium border border-slate-200">${item.category}</span>
                 </td>
+                <td class="py-3 px-4 text-xs text-slate-500">${formattedDate}</td>
                 <td class="py-3 px-4 text-center">
                     <span class="font-bold text-sm ${item.quantity === 0 ? 'text-rose-600' : (item.quantity < 10 ? 'text-amber-600' : 'text-slate-800')}">${item.quantity}</span>
                 </td>
@@ -406,11 +408,27 @@ async function quickTableAdjust(item_id, action_type, quantity_changed) {
   }
 }
 
-function clearAuditLogs() {
-    if (confirm('Clear local log view?')) {
-        logs = [];
-        renderTransactionTable();
-        showToast('Logs view cleared', 'info');
+async function clearAuditLogs() {
+    if (!confirm('Are you sure you want to clear all audit logs?')) return;
+    
+    try {
+        const response = await fetch('http://localhost:5000/api/stock', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+
+        if (response.ok) {
+            document.getElementById('transaction-table-body').innerHTML = '';
+            document.getElementById('empty-logs-state').classList.remove('hidden');
+            showToast('Audit logs cleared successfully', 'success');
+        } else {
+            showToast('Failed to clear logs', 'error');
+        }
+    } catch (err) {
+        console.error('Error clearing logs:', err);
+        showToast('Server error while clearing logs', 'error');
     }
 }
 
