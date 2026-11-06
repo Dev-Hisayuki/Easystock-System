@@ -72,3 +72,33 @@ exports.createStockLog = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+async function clearAuditLogs() {
+    if (!confirm('Are you sure you want to clear all audit logs?')) return;
+    
+    try {
+        const response = await fetch('/api/stock-logs', {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            document.getElementById('transaction-table-body').innerHTML = '';
+            document.getElementById('empty-logs-state').classList.remove('hidden');
+            showToast('Audit logs cleared successfully', 'success');
+        } else {
+            showToast('Failed to clear logs', 'error');
+        }
+    } catch (err) {
+        console.error('Error clearing logs:', err);
+        showToast('Server error while clearing logs', 'error');
+    }
+}
+
+exports.clearStockLogs = async (req, res) => {
+    try {
+        await db.execute('DELETE FROM stock_logs');
+        res.json({ message: 'Audit logs cleared successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

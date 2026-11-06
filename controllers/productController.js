@@ -61,3 +61,12 @@ exports.deleteProduct = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+exports.clearStockLogs = async (req, res) => {
+    try {
+        await db.execute('DELETE FROM stock_logs');
+        res.json({ message: 'Audit logs cleared successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
