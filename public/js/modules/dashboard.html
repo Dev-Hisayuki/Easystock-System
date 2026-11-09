@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palmis Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+
+    <div class="flex h-screen overflow-hidden">
+        <aside class="w-64 bg-indigo-900 text-white flex flex-col">
+            <div class="p-6 text-2xl font-bold tracking-wider">Palmis</div>
+            <nav id="dashboard-tabs" class="flex-1 px-4 space-y-2">
+                <button data-tab="overview" class="tab-btn w-full text-left px-4 py-2.5 rounded bg-indigo-800 text-white transition">Overview</button>
+                <button data-tab="analytics" class="tab-btn w-full text-left px-4 py-2.5 rounded hover:bg-indigo-800 transition">Analytics</button>
+                <button data-tab="settings" class="tab-btn w-full text-left px-4 py-2.5 rounded hover:bg-indigo-800 transition">Settings</button>
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-y-auto">
+            <header class="bg-white shadow px-8 py-4 flex justify-between items-center">
+                <h1 id="page-title" class="text-xl font-semibold text-gray-800">Dashboard Overview</h1>
+                <div class="text-sm text-gray-600">User: <span class="font-medium text-indigo-600">mingoymarkjohnpaul-del</span></div>
+            </header>
+
+            <main id="tab-content" class="p-8">
+                <div id="view-overview" class="tab-pane space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-gray-500 text-sm font-medium">Total Users</h3>
+                            <p class="text-3xl font-bold text-gray-800 mt-2">1,245</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-gray-500 text-sm font-medium">Active Sessions</h3>
+                            <p class="text-3xl font-bold text-indigo-600 mt-2">312</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-gray-500 text-sm font-medium">System Health</h3>
+                            <p class="text-3xl font-bold text-green-600 mt-2">99.8%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-analytics" class="tab-pane hidden">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h2 class="text-lg font-medium text-gray-800">Analytics Report</h2>
+                        <p class="text-gray-600 mt-2">Detailed metrics and charts will appear here.</p>
+                    </div>
+                </div>
+
+                <div id="view-settings" class="tab-pane hidden">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h2 class="text-lg font-medium text-gray-800">Module Settings</h2>
+                        <p class="text-gray-600 mt-2">Configure your dashboard preferences here.</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="dashboard-tab.js"></script>
+    <script src="dashboardController.js"></script>
+</body>
+</html>
