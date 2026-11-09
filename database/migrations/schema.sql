@@ -1,4 +1,3 @@
-CREATE DATABASE IF NOT EXISTS easystock_db;
 USE easystock_db;
 
 CREATE TABLE IF NOT EXISTS items (

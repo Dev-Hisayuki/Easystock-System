@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const stockController = require('../controllers/stockController');
+const stockController = require('../../controllers/stockController');
 
 router.get('/', stockController.getAllStockLogs);
 router.post('/', stockController.createStockLog);
@@ -8,7 +8,7 @@ router.delete('/', stockController.clearStockLogs); // Added to support clearing
 
 module.exports = router;
 
-const db = require('../config/db');
+const db = require('../../config/db');
 
 exports.getAllStockLogs = async (req, res) => {
     try {

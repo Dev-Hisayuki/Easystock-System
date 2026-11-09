@@ -1,7 +1,6 @@
 const db = require('../config/db');
 
 const Product = {
-  // Assigned SQL JOIN Report: LEFT JOIN All Products with optional Supplier information
   getAllWithSuppliers: async () => {
     const query = `
       SELECT 
