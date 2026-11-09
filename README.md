@@ -17,33 +17,48 @@ EasyStock is a user-friendly platform designed to manage products and inventory 
 Below is the complete file and directory layout for the **EasyStock** inventory management system built with Node.js, Express, and MySQL:
 
 ```
-easystock/
-├── .env                      # [M1: Abellon - @abelloncjnickole-collab] Database configuration & credentials
-├── .gitignore                # [Team / Lead] Excludes node_modules & secret env files from Git
-├── README.md                 # [Team Lead] Setup & running instructions
-├── index.js                  # [M1: Abellon - @abelloncjnickole-collab] Entry point (Express server & static file host)
-├── package-lock.json         # [Team / Lead] Locked dependency version tree
-├── package.json              # [Team / Lead] Project dependencies & npm scripts
+Easystock/
+├── .github/
+│   └── CODEOWNERS
+├── .vscode/
+│   └── settings.json
 ├── config/
-│   └── db.js                 # [M1: Abellon - @abelloncjnickole-collab] MySQL database connection pool configuration
+│   └── db.js
 ├── controllers/
-│   ├── authController.js     # [M1: Abellon - @abelloncjnickole-collab] User authentication controller
-│   ├── productController.js  # [M2: Palmis - @mingoymarkjohnpaul-del] Product CRUD controller
-│   └── stockController.js    # [M3 & M4: Bulata & Alvarado - @Robren2005 / @kurtalvarado05-coder] Stock In/Out controller
+│   ├── authController.js
+│   ├── productController.js
+│   └── stockController.js
 ├── models/
-│   ├── Product.js            # [M2: Palmis - @mingoymarkjohnpaul-del] SQL queries for products table
-│   ├── StockLog.js           # [M5: Gemina - @R0nielGemina] SQL queries for stock_logs audit table
-│   └── User.js               # [M1: Abellon - @abelloncjnickole-collab] SQL queries for users table
+│   ├── Log.js
+│   ├── Product.js
+│   ├── Stocklog.js
+│   └── User.js
+├── node_modules/
 ├── public/
-│   ├── index.html            # [M6: Alcorcon - @Dev-Hisayuki] Complete EasyStock dashboard UI
 │   ├── css/
-│   │   └── style.css         # [M6: Alcorcon - @Dev-Hisayuki] Custom CSS overrides
-│   └── js/
-│       └── main.js           # [M6: Alcorcon - @Dev-Hisayuki] Client-side API fetch logic
-└── routes/
-    ├── authRoutes.js         # [M1: Abellon - @abelloncjnickole-collab] Authentication API routes (/api/auth)
-    ├── productRoutes.js      # [M2: Palmis - @mingoymarkjohnpaul-del] Product API routes (/api/products)
-    └── stockRoutes.js        # [M3 & M4: Bulata & Alvarado] Stock adjustment API routes (/api/stock)
+│   │   ├── dashboard.css
+│   │   └── index.css
+│   ├── js/
+│   │   ├── modules/
+│   │   │   ├── logs-tab.js
+│   │   │   └── stock-tab.js
+│   │   ├── dashboard.js
+│   │   └── index.js
+│   ├── dashboard.html
+│   └── index.html
+├── routes/
+│   ├── authRoutes.js
+│   ├── logs.js
+│   ├── productRoutes.js
+│   ├── stock.js
+│   └── stockRoutes.js
+├── .env
+├── .gitignore
+├── index.js
+├── package-lock.json
+├── package.json
+├── README.md
+└── schema.sql
 ```
 
 ---
