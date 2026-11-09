@@ -18,32 +18,43 @@ Below is the complete file and directory layout for the **EasyStock** inventory 
 
 ```
 easystock/
-├── .env                      # [M1: Abellon - @abelloncjnickole-collab] Database configuration & credentials
-├── .gitignore                # [Team / Lead] Excludes node_modules & secret env files from Git
-├── README.md                 # [Team Lead] Setup & running instructions
-├── index.js                  # [M1: Abellon - @abelloncjnickole-collab] Entry point (Express server & static file host)
-├── package-lock.json         # [Team / Lead] Locked dependency version tree
-├── package.json              # [Team / Lead] Project dependencies & npm scripts
+├── .env                  # [M1: Abellion - @abelloncjnickole-collab] Database configuration & credentials
+├── .gitignore            # [Team / Lead] Excludes node_modules & secret env files from Git
+├── README.md             # [Team Lead] Setup & running instructions
+├── index.js              # [M1: Abellion - @abelloncjnickole-collab] Entry point (Express server & middleware)
+├── package-lock.json     # [Team / Lead] Locked dependency version tree
+├── package.json          # [Team / Lead] Project dependencies & npm scripts
 ├── config/
-│   └── db.js                 # [M1: Abellon - @abelloncjnickole-collab] MySQL database connection pool configuration
+│   └── db.js             # [M1: Abellion - @abelloncjnickole-collab] MySQL database connection pool
 ├── controllers/
-│   ├── authController.js     # [M1: Abellon - @abelloncjnickole-collab] User authentication controller
-│   ├── productController.js  # [M2: Palmis - @mingoymarkjohnpaul-del] Product CRUD controller
-│   └── stockController.js    # [M3 & M4: Bulata & Alvarado - @Robren2005 / @kurtalvarado05-coder] Stock In/Out controller
+│   ├── authController.js     # [M1: Abellion - @abelloncjnickole-collab] User authentication controller
+│   ├── dashboardController.js# [M2: Palmis - @mingoymarkjohnpaul-del] Dashboard aggregations controller
+│   ├── productController.js  # [M3: Bulata - @Robren2005] Product CRUD controller
+│   └── stockController.js    # [M4: Alvarado - @kurtalvarado05-coder] Stock adjustment controller
 ├── models/
-│   ├── Product.js            # [M2: Palmis - @mingoymarkjohnpaul-del] SQL queries for products table
-│   ├── StockLog.js           # [M5: Gemina - @R0nielGemina] SQL queries for stock_logs audit table
-│   └── User.js               # [M1: Abellon - @abelloncjnickole-collab] SQL queries for users table
+│   ├── Product.js        # [M3: Bulata - @Robren2005] SQL queries for products table
+│   ├── Stocklog.js       # [M5: Gemina - @R0nielGemina] SQL queries for stock_logs audit table
+│   └── User.js           # [M1: Abellion - @abelloncjnickole-collab] SQL queries for users table
 ├── public/
-│   ├── index.html            # [M6: Alcorcon - @Dev-Hisayuki] Complete EasyStock dashboard UI
+│   ├── index.html        # [M6: Alcorcon - @Dev-Hisayuki] Complete EasyStock dashboard UI
 │   ├── css/
-│   │   └── style.css         # [M6: Alcorcon - @Dev-Hisayuki] Custom CSS overrides
+│   │   ├── index.css     # [M6: Alcorcon - @Dev-Hisayuki] Global layout styling
+│   │   ├── dashboard.css # [M2: Palmis - @mingoymarkjohnpaul-del] Dashboard tab styling
+│   │   ├── inventory.css # [M3: Bulata - @Robren2005] Inventory tab styling
+│   │   └── logs.css      # [M4: Alvarado - @kurtalvarado05-coder] Audit logs tab styling
 │   └── js/
-│       └── main.js           # [M6: Alcorcon - @Dev-Hisayuki] Client-side API fetch logic
+│       ├── app.js        # [M6: Alcorcon - @Dev-Hisayuki] Main client router and tab loader
+│       └── modules/
+│           ├── auth-tab.js      # [M1: Abellion] Authentication client view logic
+│           ├── dashboard-tab.js # [M2: Palmis] Dashboard statistics metrics view
+│           ├── inventory-tab.js # [M3: Bulata] Inventory table & management view
+│           ├── stock-tab.js     # [M4: Alvarado] Stock adjustment operations view
+│           └── logs-tab.js      # [M4: Alvarado] Activity audit logs view
 └── routes/
-    ├── authRoutes.js         # [M1: Abellon - @abelloncjnickole-collab] Authentication API routes (/api/auth)
-    ├── productRoutes.js      # [M2: Palmis - @mingoymarkjohnpaul-del] Product API routes (/api/products)
-    └── stockRoutes.js        # [M3 & M4: Bulata & Alvarado] Stock adjustment API routes (/api/stock)
+    ├── auth.js           # [M1: Abellion - @abelloncjnickole-collab] Authentication API routes (/api/auth)
+    ├── inventory.js      # [M3: Bulata - @Robren2005] Product inventory routes (/api/inventory)
+    ├── stock.js          # [M4: Alvarado - @kurtalvarado05-coder] Stock operation routes (/api/stock)
+    └── logs.js           # [M4: Alvarado - @kurtalvarado05-coder] Audit activity log routes (/api/logs)
 ```
 
 ---
