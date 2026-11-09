@@ -16,3 +16,15 @@
 .nav-btn {
     transition: all 0.15s ease-in-out;
 }
+
+table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+th, td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

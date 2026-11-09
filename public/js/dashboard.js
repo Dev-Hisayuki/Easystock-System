@@ -113,7 +113,7 @@ function renderRecentLogs() {
     }
 
     container.innerHTML = recent.map(log => {
-        const isPositive = log.action_type === 'IN';
+        const isPositive = log.action_type === 'IN' || log.action_type === 'CREATED';
         return `
             <div class="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition">
                 <div class="w-7 h-7 rounded-full ${isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'} flex items-center justify-center text-xs flex-shrink-0 mt-0.5">
@@ -171,10 +171,10 @@ function renderInventoryTable() {
             <tr class="hover:bg-slate-50/80 transition">
                 <td class="py-3 px-4 font-mono text-xs font-semibold text-slate-600">ID-${item.item_id}</td>
                 <td class="py-3 px-4 font-semibold text-slate-800">${item.item_name}</td>
-                <td class="py-3 px-4">
-                    <span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs font-medium border border-slate-200">${item.category}</span>
+                <td class="py-3 px-4 whitespace-normal">
+                    <span class="inline-block w-full text-center bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs font-medium border border-slate-200">${item.category}</span>
                 </td>
-                <td class="py-3 px-4 text-xs text-slate-500">${formattedDate}</td>
+                <td class="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">${formattedDate}</td>
                 <td class="py-3 px-4 text-center">
                     <span class="font-bold text-sm ${item.quantity === 0 ? 'text-rose-600' : (item.quantity < 10 ? 'text-amber-600' : 'text-slate-800')}">${item.quantity}</span>
                 </td>
@@ -231,7 +231,7 @@ function renderTransactionTable() {
     emptyState.classList.add('hidden');
 
     tbody.innerHTML = logs.map(log => {
-        const isPositive = log.action_type === 'IN';
+        const isPositive = log.action_type === 'IN' || log.action_type === 'CREATED';
         return `
             <tr class="hover:bg-slate-50 transition">
                 <td class="py-3 px-4 text-xs text-slate-500 font-mono">${new Date(log.created_at).toLocaleString()}</td>
