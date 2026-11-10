@@ -14,6 +14,71 @@ EasyStock is a user-friendly platform designed to manage products and inventory 
 
 ## 1. Project Folder & File Structure
 
+Below is the complete file and directory layout for the **EasyStock** inventory management system built with Node.js, Express, and MySQL:
+
+```
+Easystock/
+├── controllers/
+│   ├── inventoryController.js
+│   ├── notificationController.js
+│   ├── procurementController.js
+│   ├── requisitionController.js
+│   ├── stockLogController.js
+│   └── userController.js
+├── middleware/
+│   ├── authMiddleware.js
+│   ├── errorHandler.js
+│   └── roleMiddleware.js
+├── models/
+│   ├── ActivityLog.js
+│   ├── Category.js
+│   ├── Department.js
+│   ├── Inventory.js
+│   ├── Notification.js
+│   ├── PurchaseOrder.js
+│   ├── Requisition.js
+│   ├── Role.js
+│   ├── StockAdjustment.js
+│   ├── StockIn.js
+│   ├── StockOut.js
+│   ├── StockTransfer.js
+│   ├── Supplier.js
+│   ├── UnitOfMeasure.js
+│   └── Warehouse.js
+├── routes/
+│   └── api/
+│       ├── authRoutes.js
+│       ├── inventoryRoutes.js
+│       ├── notificationRoutes.js
+│       ├── procurementRoutes.js
+│       ├── productRoutes.js
+│       ├── requisitionRoutes.js
+│       ├── stockRoutes.js
+│       └── userRoutes.js
+├── services/
+│   ├── inventoryService.js
+│   └── notificationService.js
+├── utils/
+│   ├── helpers.js
+│   └── logger.js
+├── public/
+│   ├── css/
+│   │   ├── dashboard.css
+│   │   └── index.css
+│   ├── js/
+│   │   ├── dashboard.js
+│   │   ├── index.js
+│   │   └── modules/
+│   │       ├── inventory-tab.js
+│   │       └── requisition-tab.js
+│   ├── dashboard.html
+│   └── index.html
+├── .env
+├── package.json
+└── server.js
+```
+
+---
 Easystock-System/
 ├── config/
 │   ├── database.js            # Database connection & credentials
