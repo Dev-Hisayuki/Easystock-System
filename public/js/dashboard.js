@@ -7,11 +7,23 @@ window.onload = function() {
     pollingInterval = setInterval(fetchAllData, 3000);
 };
 
+async function apiFetch(url, options = {}) {
+    const token = localStorage.getItem('authToken');
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers
+    };
+    const response = await fetch(url, { ...options, headers });
+    if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+    return response.json();
+}
+
 async function fetchAllData() {
     try {
         const [prodRes, stockRes] = await Promise.all([
-            fetch('http://localhost:5000/api/products'),
-            fetch('http://localhost:5000/api/stock')
+            fetch('/api/products'),
+            fetch('/api/stock')
         ]);
         
         if (prodRes.ok && stockRes.ok) {
@@ -33,10 +45,12 @@ function renderAll() {
     updateNavigationBadges();
 }
 
-function switchTab(tabId) {
+window.switchTab = function(tabId) {
     ['dashboard', 'inventory', 'transactions'].forEach(id => {
         const section = document.getElementById(`tab-${id}`);
         const btn = document.getElementById(`nav-${id}`);
+
+        if (!section || !btn) return;
 
         if (id === tabId) {
             section.classList.remove('hidden');
@@ -50,11 +64,12 @@ function switchTab(tabId) {
     });
 
     const titleMap = {
-        'dashboard': 'Dashboard Overview',
-        'inventory': 'Inventory Directory',
-        'transactions': 'Audit Logs & History'
+        'dashboard': 'Dashboard',
+        'inventory': 'Inventory Management',
+        'transactions': 'Audit Trail & Transaction Log'
     };
-    document.getElementById('page-title').textContent = titleMap[tabId];
+    const titleEl = document.getElementById('page-title');
+    if (titleEl) titleEl.textContent = titleMap[tabId] || 'Dashboard';
 }
 
 function getStatusInfo(stock) {
@@ -90,7 +105,13 @@ function renderDashboardStats() {
 
 function renderTopValueItems() {
     const tbody = document.getElementById('top-value-table');
+    if (!tbody) return;
     const sorted = [...inventory].sort((a, b) => (b.quantity * b.unit_price) - (a.quantity * a.unit_price)).slice(0, 4);
+
+    if (sorted.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">No items available.</td></tr>`;
+        return;
+    }
 
     tbody.innerHTML = sorted.map(item => `
         <tr class="hover:bg-slate-50 transition">
@@ -105,6 +126,7 @@ function renderTopValueItems() {
 
 function renderRecentLogs() {
     const container = document.getElementById('recent-logs-list');
+    if (!container) return;
     const recent = logs.slice(0, 5);
 
     if (recent.length === 0) {
@@ -125,7 +147,7 @@ function renderRecentLogs() {
                 </div>
                 <div class="text-right flex-shrink-0">
                     <span class="text-xs font-bold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}">
-                        ${isPositive ? '+' : '-'}${log.quantity_changed}
+                        ${isPositive ? '+' : '-'}${Math.abs(log.quantity_changed)}
                     </span>
                     <p class="text-[10px] text-slate-400">${new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                 </div>
@@ -137,10 +159,11 @@ function renderRecentLogs() {
 function renderInventoryTable() {
     const tbody = document.getElementById('inventory-table-body');
     const emptyState = document.getElementById('empty-inventory-state');
+    if (!tbody) return;
     
-    const searchVal = document.getElementById('inventory-search').value.toLowerCase();
-    const categoryVal = document.getElementById('category-filter').value;
-    const statusVal = document.getElementById('status-filter').value;
+    const searchVal = document.getElementById('inventory-search')?.value.toLowerCase() || '';
+    const categoryVal = document.getElementById('category-filter')?.value || 'ALL';
+    const statusVal = document.getElementById('status-filter')?.value || 'ALL';
 
     const filtered = inventory.filter(item => {
         const matchesSearch = item.item_name.toLowerCase().includes(searchVal) || String(item.item_id).includes(searchVal);
@@ -156,11 +179,11 @@ function renderInventoryTable() {
 
     if (filtered.length === 0) {
         tbody.innerHTML = '';
-        emptyState.classList.remove('hidden');
+        if (emptyState) emptyState.classList.remove('hidden');
         return;
     }
 
-    emptyState.classList.add('hidden');
+    if (emptyState) emptyState.classList.add('hidden');
 
     tbody.innerHTML = filtered.map(item => {
         const status = getStatusInfo(item.quantity);
@@ -171,10 +194,10 @@ function renderInventoryTable() {
             <tr class="hover:bg-slate-50/80 transition">
                 <td class="py-3 px-4 font-mono text-xs font-semibold text-slate-600">ID-${item.item_id}</td>
                 <td class="py-3 px-4 font-semibold text-slate-800">${item.item_name}</td>
-                <td class="py-3 px-4 whitespace-normal">
-                    <span class="inline-block w-full text-center bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs font-medium border border-slate-200">${item.category}</span>
+                <td class="py-3 px-4">
+                    <span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs font-medium border border-slate-200">${item.category}</span>
                 </td>
-                <td class="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">${formattedDate}</td>
+                <td class="py-3 px-4 text-xs text-slate-500">${formattedDate}</td>
                 <td class="py-3 px-4 text-center">
                     <span class="font-bold text-sm ${item.quantity === 0 ? 'text-rose-600' : (item.quantity < 10 ? 'text-amber-600' : 'text-slate-800')}">${item.quantity}</span>
                 </td>
@@ -206,12 +229,8 @@ function renderInventoryTable() {
     }).join('');
 }
 
-function filterInventory() { renderInventoryTable(); }
-function filterByStatus(status) {
-    document.getElementById('status-filter').value = status;
-    renderInventoryTable();
-}
-function resetFilters() {
+window.filterInventory = function() { renderInventoryTable(); }
+window.resetFilters = function() {
     document.getElementById('inventory-search').value = '';
     document.getElementById('category-filter').value = 'ALL';
     document.getElementById('status-filter').value = 'ALL';
@@ -220,18 +239,11 @@ function resetFilters() {
 
 function renderTransactionTable() {
     const tbody = document.getElementById('transaction-table-body');
-    const emptyState = document.getElementById('empty-logs-state');
-
-    if (logs.length === 0) {
-        tbody.innerHTML = '';
-        emptyState.classList.remove('hidden');
-        return;
-    }
-
-    emptyState.classList.add('hidden');
+    if (!tbody) return;
 
     tbody.innerHTML = logs.map(log => {
         const isPositive = log.action_type === 'IN' || log.action_type === 'CREATED';
+        
         return `
             <tr class="hover:bg-slate-50 transition">
                 <td class="py-3 px-4 text-xs text-slate-500 font-mono">${new Date(log.created_at).toLocaleString()}</td>
@@ -243,20 +255,21 @@ function renderTransactionTable() {
                 </td>
                 <td class="py-3 px-4 font-semibold text-slate-800">${log.item_name || 'Product ID #' + log.item_id}</td>
                 <td class="py-3 px-4 text-center font-bold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}">
-                    ${isPositive ? '+' : '-'}${log.quantity_changed}
+                    ${isPositive ? '+' : '-'}${Math.abs(log.quantity_changed)}
                 </td>
                 <td class="py-3 px-4 text-center font-semibold text-slate-700">-</td>
-                <td class="py-3 px-4 text-xs text-slate-600">${log.remarks || '-'} (By User ID: ${log.performed_by || 'System'})</td>
+                <td class="py-3 px-4 text-xs text-slate-600">${log.remarks || '-'}</td>
             </tr>
         `;
     }).join('');
 }
 
 function updateNavigationBadges() {
-    document.getElementById('nav-total-badge').textContent = inventory.length;
+    const badge = document.getElementById('nav-total-badge');
+    if (badge) badge.textContent = inventory.length;
 }
 
-function openProductModal(id = null) {
+window.openProductModal = function(id = null) {
     const modal = document.getElementById('product-modal');
     const title = document.getElementById('modal-title');
     const form = document.getElementById('product-form');
@@ -283,11 +296,11 @@ function openProductModal(id = null) {
     modal.classList.remove('hidden');
 }
 
-function closeProductModal() {
+window.closeProductModal = function() {
     document.getElementById('product-modal').classList.add('hidden');
 }
 
-async function handleProductSubmit(e) {
+window.handleProductSubmit = async function(e) {
     e.preventDefault();
 
     const id = document.getElementById('edit-id').value;
@@ -296,7 +309,7 @@ async function handleProductSubmit(e) {
     const quantity = parseInt(document.getElementById('form-stock').value);
     const unit_price = parseFloat(document.getElementById('form-price').value);
 
-    const url = id ? `http://localhost:5000/api/products/${id}` : 'http://localhost:5000/api/products';
+    const url = id ? `/api/products/${id}` : '/api/products';
     const method = id ? 'PUT' : 'POST';
 
     try {
@@ -312,20 +325,18 @@ async function handleProductSubmit(e) {
             fetchAllData();
         } else {
             const errData = await res.json().catch(() => ({}));
-            console.error('Server error response:', errData);
             showToast(errData.error || errData.message || 'Error saving product', 'error');
         }
     } catch (err) {
-        console.error('Network/Client error:', err);
         showToast('Network connection failed', 'error');
     }
 }
 
-async function deleteProduct(id) {
+window.deleteProduct = async function(id) {
     if (confirm('Are you sure you want to delete this product?')) {
-        const res = await fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
         if (res.ok) {
-            showToast('Product deleted from system', 'info');
+            showToast('Product deleted from system', 'success');
             fetchAllData();
         } else {
             showToast('Failed to delete product', 'error');
@@ -333,7 +344,7 @@ async function deleteProduct(id) {
     }
 }
 
-function openStockAdjustmentModal() {
+window.openStockAdjustmentModal = function() {
     const select = document.getElementById('stock-item-select');
     if (inventory.length === 0) {
         showToast('No products available for adjustment', 'error');
@@ -344,21 +355,21 @@ function openStockAdjustmentModal() {
     document.getElementById('stock-modal').classList.remove('hidden');
 }
 
-function closeStockModal() {
+window.closeStockModal = function() {
     document.getElementById('stock-modal').classList.add('hidden');
 }
 
-async function handleStockAdjustment(e) {
+window.handleStockAdjustment = async function(e) {
     e.preventDefault();
     const item_id = document.getElementById('stock-item-select').value;
     const action_type = document.getElementById('stock-action').value;
     const quantity_changed = parseInt(document.getElementById('stock-qty').value);
     const remarks = document.getElementById('stock-note').value.trim() || 'Manual Quick Adjustment';
 
-    const res = await fetch('http://localhost:5000/api/stock', {
+    const res = await fetch('/api/stock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ item_id, action_type, quantity_changed, remarks, performed_by: 1 })
+        body: JSON.stringify({ item_id, action_type, quantity_changed, remarks })
     });
 
     if (res.ok) {
@@ -371,7 +382,57 @@ async function handleStockAdjustment(e) {
     }
 }
 
-async function quickTableAdjust(item_id, action_type, quantity_changed) {
+// Stock Transfer Modal Handlers
+window.openTransferModal = async function() {
+    const modal = document.getElementById('transfer-modal');
+    const select = document.getElementById('transfer-item-id');
+    if (!modal || !select) return;
+
+    if (inventory.length === 0) {
+        showToast('No products available for transfer', 'error');
+        return;
+    }
+
+    select.innerHTML = inventory.map(p => `<option value="${p.item_id}">${p.item_name} (Current Qty: ${p.quantity})</option>`).join('');
+    modal.classList.remove('hidden');
+}
+
+window.closeTransferModal = function() {
+    const modal = document.getElementById('transfer-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+window.handleTransferSubmit = async function(e) {
+    e.preventDefault();
+    const payload = {
+        item_id: document.getElementById('transfer-item-id').value,
+        from_warehouse_id: document.getElementById('transfer-from-wh').value,
+        to_warehouse_id: document.getElementById('transfer-to-wh').value,
+        quantity: document.getElementById('transfer-qty').value,
+        remarks: document.getElementById('transfer-remarks').value
+    };
+
+    try {
+        const res = await fetch('/api/transfers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            showToast('Stock transfer submitted successfully!', 'success');
+            closeTransferModal();
+            fetchAllData();
+        } else {
+            const data = await res.json();
+            showToast(data.error || 'Transfer failed', 'error');
+        }
+    } catch (err) {
+        showToast('Could not connect to server', 'error');
+    }
+}
+
+window.quickTableAdjust = async function(item_id, action_type, quantity_changed) {
   const item = inventory.find(i => i.item_id === item_id);
   if (!item) return;
 
@@ -381,42 +442,36 @@ async function quickTableAdjust(item_id, action_type, quantity_changed) {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/api/stock', {
+    const res = await fetch('/api/stock', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         item_id: Number(item_id), 
         action_type: action_type, 
         quantity_changed: Number(quantity_changed), 
-        remarks: `Quick Table ${action_type}`, 
-        performed_by: null // Set to null if user foreign key constraint fails
+        remarks: `Quick Table ${action_type}`
       })
     });
-
-    const data = await res.json();
 
     if (res.ok) {
       showToast('Stock updated successfully', 'success');
       fetchAllData();
     } else {
-      console.error('Server error:', data.error);
+      const data = await res.json();
       showToast(data.error || 'Quick adjustment failed', 'error');
     }
   } catch (err) {
-    console.error('Connection error:', err);
     showToast('Could not connect to server', 'error');
   }
 }
 
-async function clearAuditLogs() {
+window.clearAuditLogs = async function() {
     if (!confirm('Are you sure you want to clear all audit logs?')) return;
     
     try {
-        const response = await fetch('http://localhost:5000/api/stock', {
+        const response = await fetch('/api/stock', {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-            }
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
         });
 
         if (response.ok) {
@@ -427,12 +482,11 @@ async function clearAuditLogs() {
             showToast('Failed to clear logs', 'error');
         }
     } catch (err) {
-        console.error('Error clearing logs:', err);
         showToast('Server error while clearing logs', 'error');
     }
 }
 
-function exportToCSV() {
+window.exportToCSV = function() {
     if (inventory.length === 0) {
         showToast('No inventory data to export', 'error');
         return;
@@ -464,13 +518,14 @@ function exportToCSV() {
     showToast('Exported inventory to CSV successfully', 'success');
 }
 
-function handleLogout() {
+window.handleLogout = function() {
     localStorage.removeItem('authToken');
     window.location.href = 'index.html';
 }
 
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
+    if (!container) return;
     const toast = document.createElement('div');
     
     const bgClass = type === 'success' ? 'bg-emerald-800 text-emerald-100 border-emerald-700' :
