@@ -79,6 +79,67 @@ Easystock/
 ```
 
 ---
+Easystock-System/
+├── config/
+│   ├── database.js            # Database connection & credentials
+│   └── app.js                 # Global application settings
+├── controllers/
+│   ├── authController.js      # Login, password resets, user authentication
+│   ├── userController.js      # Management of users & roles
+│   ├── productController.js   # Catalog, categories, & units of measure
+│   ├── inventoryController.js # Warehouses, stock levels, transfers, & adjustments
+│   ├── requisitionController.js # Requisition headers & line item requests
+│   ├── procurementController.js # Purchase requests, purchase orders, & suppliers
+│   ├── stockLogController.js  # Stock-in/out records & receiving/dispatch details
+│   └── notificationController.js # System alerts & low-stock triggers
+├── middleware/
+│   ├── authMiddleware.js      # JWT/Session authentication checks
+│   ├── roleMiddleware.js      # Role-based access control (RBAC permissions)
+│   └── errorHandler.js        # Global error handling middleware
+├── models/
+│   ├── User.js                # users table
+│   ├── Role.js                # roles table
+│   ├── Category.js            # categories table
+│   ├── UnitOfMeasure.js       # units_of_measure table
+│   ├── Supplier.js            # suppliers table
+│   ├── Warehouse.js           # warehouses table
+│   ├── Product.js             # products table
+│   ├── Inventory.js           # inventory table (stock counts per warehouse)
+│   ├── StockAdjustment.js     # stock_adjustments table (reconciliation)
+│   ├── StockTransfer.js       # stock_transfers table (inter-warehouse movement)
+│   ├── Department.js          # departments table
+│   ├── Requisition.js         # requisitions & requisition_items tables
+│   ├── PurchaseOrder.js       # purchase_orders & purchase_requests tables
+│   ├── StockIn.js             # stock_in_records & stock_in_details tables
+│   ├── StockOut.js            # stock_out_records & stock_out_details tables
+│   ├── Notification.js        # notifications table
+│   └── ActivityLog.js         # activity_logs table
+├── routes/
+│   ├── api/
+│   │   ├── authRoutes.js
+│   │   ├── userRoutes.js
+│   │   ├── productRoutes.js
+│   │   ├── inventoryRoutes.js
+│   │   ├── requisitionRoutes.js
+│   │   ├── procurementRoutes.js
+│   │   ├── stockRoutes.js
+│   │   └── notificationRoutes.js
+│   └── index.js               # Route aggregator
+├── database/
+│   ├── migrations/            # Migration scripts for schema creation
+│   └── seeds/                 # Initial seed data (default roles, default UoMs)
+├── services/
+│   ├── inventoryService.js    # Stock calculation & threshold logic
+│   └── notificationService.js # Low-stock alert triggers & email sending
+├── utils/
+│   ├── logger.js              # Activity logging helper functions
+│   └── helpers.js             # General formatters & data validators
+├── public/                    # Static files (images, export templates)
+├── views/                     # EJS/Pug templates (if rendering server-side)
+├── .env                       # Environment variables (DB credentials, secrets)
+├── .gitignore
+├── package.json
+└── app.js                     # Main Express server entry point
 
 ## 2. Ownership Matrix (Section 5.4 Compliance)
 
