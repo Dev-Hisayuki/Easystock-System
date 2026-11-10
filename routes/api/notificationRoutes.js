@@ -6,4 +6,4 @@ router.get('/', notificationController.getNotifications);
 router.patch('/:id/read', notificationController.markAsRead);
 
 module.exports = router;
-procurementRoutes
+procurementRoutes
