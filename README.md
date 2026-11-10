@@ -18,47 +18,64 @@ Below is the complete file and directory layout for the **EasyStock** inventory 
 
 ```
 Easystock/
-├── .github/
-│   └── CODEOWNERS
-├── .vscode/
-│   └── settings.json
-├── config/
-│   └── db.js
 ├── controllers/
-│   ├── authController.js
-│   ├── productController.js
-│   └── stockController.js
+│   ├── inventoryController.js
+│   ├── notificationController.js
+│   ├── procurementController.js
+│   ├── requisitionController.js
+│   ├── stockLogController.js
+│   └── userController.js
+├── middleware/
+│   ├── authMiddleware.js
+│   ├── errorHandler.js
+│   └── roleMiddleware.js
 ├── models/
-│   ├── Log.js
-│   ├── Product.js
-│   ├── Stocklog.js
-│   └── User.js
-├── node_modules/
+│   ├── ActivityLog.js
+│   ├── Category.js
+│   ├── Department.js
+│   ├── Inventory.js
+│   ├── Notification.js
+│   ├── PurchaseOrder.js
+│   ├── Requisition.js
+│   ├── Role.js
+│   ├── StockAdjustment.js
+│   ├── StockIn.js
+│   ├── StockOut.js
+│   ├── StockTransfer.js
+│   ├── Supplier.js
+│   ├── UnitOfMeasure.js
+│   └── Warehouse.js
+├── routes/
+│   └── api/
+│       ├── authRoutes.js
+│       ├── inventoryRoutes.js
+│       ├── notificationRoutes.js
+│       ├── procurementRoutes.js
+│       ├── productRoutes.js
+│       ├── requisitionRoutes.js
+│       ├── stockRoutes.js
+│       └── userRoutes.js
+├── services/
+│   ├── inventoryService.js
+│   └── notificationService.js
+├── utils/
+│   ├── helpers.js
+│   └── logger.js
 ├── public/
 │   ├── css/
 │   │   ├── dashboard.css
 │   │   └── index.css
 │   ├── js/
-│   │   ├── modules/
-│   │   │   ├── logs-tab.js
-│   │   │   └── stock-tab.js
 │   │   ├── dashboard.js
-│   │   └── index.js
+│   │   ├── index.js
+│   │   └── modules/
+│   │       ├── inventory-tab.js
+│   │       └── requisition-tab.js
 │   ├── dashboard.html
 │   └── index.html
-├── routes/
-│   ├── authRoutes.js
-│   ├── logs.js
-│   ├── productRoutes.js
-│   ├── stock.js
-│   └── stockRoutes.js
 ├── .env
-├── .gitignore
-├── index.js
-├── package-lock.json
 ├── package.json
-├── README.md
-└── schema.sql
+└── server.js
 ```
 
 ---
